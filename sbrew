@@ -1,0 +1,35 @@
+#!/usr/bin/python3
+
+import json
+import requests
+import sys
+
+lbrew_search = "https://api.bintray.com/search/packages?subject=linuxbrew&name=%s"
+latest_files = "https://api.bintray.com/packages/linuxbrew/%s/%s/versions/%s/files"
+download_url = "https://bintray.com/linuxbrew/%s/download_file?file_path=%s"
+
+session = requests.Session()
+sch_data = session.get( lbrew_search % (sys.argv[1]) ).json()
+ 
+
+for i in range(0,len(sch_data)):
+    print ("---------------------")
+    # basic info
+    print ("name: %s\n" % sch_data[i]['name'])
+    print ("repo: %s | latest_version: %s | updated: %s | created: %s" \
+        % (sch_data[i]['repo'], sch_data[i]['latest_version'], sch_data[i]['updated'], sch_data[i]['created']) )
+    # description
+    if sch_data[i]['desc'] :
+        print ( sch_data[i]['desc'] )
+    # urls
+    for key in sch_data[i].keys():
+        if '_url' in key and sch_data[i][key]:
+            print ( "%s: %s" % (key, sch_data[i][key]) )
+    # latest version download path
+    if sch_data[i]['latest_version']:
+        latest_data = session.get( latest_files % (sch_data[i]['repo'], sch_data[i]['name'], sch_data[i]['latest_version']) ).json()
+        for u in range(0,len(latest_data)):
+            file_url = download_url % (sch_data[i]['repo'], latest_data[u]['path'])
+            print ("\nfile_name: %s  url: %s" % (latest_data[u]['name'], file_url ))
+        
+
